@@ -7,14 +7,10 @@ import codecs
 import csv
 
 
-WAY_TAGS_FIELDS = ['aid', 'title', 'uid', 'nick', 'date', 'viewV']
-database = {'aid' : 0,
-            'title' : '',
-            'uid' : '',
-            'nick': '',
-            'date': '',
-            'viewV': 0
-            }
+#WAY_TAGS_FIELDS = ['aid', 'title', 'uid', 'nick', 'date', 'viewV']
+WAY_TAGS_FIELDS = ['aid', 'title', 'uid', 'nick', 'date', 'viewV', 'word','reply']
+
+
 
 makefile = []
 
@@ -25,6 +21,16 @@ def url(n):
     return soup
 
 def get_attr(line):
+
+    database = {'aid' : 0,
+                'title' : '',
+                'uid' : '',
+                'nick': '',
+                'date': '',
+                'viewV': 0,
+                'word': 'NULL', #for kbotown
+                'reply': 0  #for kbotown
+                }
     m = 1
     for a in line:
         if m == 1:
@@ -45,7 +51,16 @@ def get_attr(line):
                             database['nick'] = b.string
                     else:
                         if b.name == 'a':
-                            database['title'] = b['alt']
+#                            database['title'] = b['alt']
+                            if str(b.text)[-5:-1].find('[') == -1:
+                                database['title'] = str(b.text)[0:-1]
+                            else:
+                                database['title'] = str(b.text)[0:-4]
+                                database['reply'] = str(b.text)[str(b.text).rfind('[')+1:-1]
+                            for last in b:
+                                if last.name == 'span' and last['class'] == ['word']:
+                                    database['word'] = last.string
+
                 except:
                     pass
     return database
@@ -57,14 +72,16 @@ def test():
         mlb_writer = csv.DictWriter(f, WAY_TAGS_FIELDS)
         mlb_writer.writeheader()
 
-        for num in range(1,10):
+        for num in range(1,1700):
             n = 1
             for line in url(1+30*(num-1)).find_all('tr'):
-                if n <= 4:
+#                if n <= 4:
+                if n <= 3:
                     n += 1
                 else:
                     try:
-                        if n < 35:
+#                        if n < 35:
+                        if n < 34:
                             mlb_writer.writerow(get_attr(line))
                             n += 1
                     except:
